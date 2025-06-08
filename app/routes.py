@@ -21,6 +21,12 @@ from app.external_apis import DisasterDataIntegrator
 api_bp = Blueprint('api', __name__)
 
 
+# Health check endpoint
+@api_bp.route('/health', methods=['GET'])
+def api_health_check():
+    return {'status': 'healthy', 'message': 'CDRP API is running', 'version': '1.0.0'}, 200
+
+
 # Relief Request endpoints
 @api_bp.route('/requests', methods=['GET'])
 @jwt_required()
