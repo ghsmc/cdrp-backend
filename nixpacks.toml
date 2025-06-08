@@ -1,0 +1,15 @@
+[phases.setup]
+nixPkgs = ["python311", "postgresql"]
+
+[phases.install]
+cmds = ["pip install -r requirements.txt"]
+
+[phases.build]
+cmds = ["echo 'Build phase complete'"]
+
+[start]
+cmd = "gunicorn main:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
+
+[variables]
+PYTHONPATH = "/app"
+FLASK_ENV = "production"

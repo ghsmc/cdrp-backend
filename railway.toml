@@ -1,0 +1,11 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "./start.sh"
+restartPolicyType = "always"
+
+[env]
+FLASK_ENV = "production"
+PYTHONUNBUFFERED = "1"
+PYTHONPATH = "/app"

@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - DATABASE_URL=postgresql://postgres:password@db:5432/cdrp_api
+      - JWT_SECRET_KEY=your-production-jwt-secret
+      - SECRET_KEY=your-production-secret-key
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./uploads:/app/uploads
+    command: >
+      sh -c "flask db upgrade &&
+             python scripts/seed_data.py &&
+             gunicorn app:app --bind 0.0.0.0:5000 --workers 2 --timeout 120"
+
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=cdrp_api
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
