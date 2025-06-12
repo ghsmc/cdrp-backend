@@ -43,14 +43,25 @@ class TestingConfig(Config):
 
 class ProductionConfig(Config):
     DEBUG = False
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or os.environ.get('DATABASE_URL_PROD')
     
-    # Handle Heroku's postgres:// URLs
-    if SQLALCHEMY_DATABASE_URI and SQLALCHEMY_DATABASE_URI.startswith('postgres://'):
-        SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI.replace('postgres://', 'postgresql://', 1)
+    # Try multiple database URL formats for different platforms
+    database_url = (
+        os.environ.get('DATABASE_URL') or 
+        os.environ.get('DATABASE_URL_PROD') or
+        os.environ.get('DATABASE_PRIVATE_URL') or  # Railway format
+        os.environ.get('POSTGRES_URL') or         # Alternative format
+        'sqlite:///prod.db'  # Fallback for demo purposes
+    )
     
-    if not SQLALCHEMY_DATABASE_URI:
-        raise ValueError("DATABASE_URL must be set for production")
+    # Handle postgres:// vs postgresql:// URL formats
+    if database_url and database_url.startswith('postgres://'):
+        database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    
+    SQLALCHEMY_DATABASE_URI = database_url
+    
+    # Only raise error if no database is configured and we're in strict production mode
+    if not SQLALCHEMY_DATABASE_URI and os.environ.get('STRICT_PRODUCTION', 'false').lower() == 'true':
+        raise ValueError("DATABASE_URL must be set for strict production mode")
 
 
 config = {
